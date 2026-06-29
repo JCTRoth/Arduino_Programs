@@ -1,1 +1,2 @@
-include::./Temperature_Adaptive_Fan/README.adoc
+== Temperature Adaptive Fan
+Temperature Adaptive Fan project, which uses an Arduino Uno to control an PWM Fan PWM fan based on temperature readings from a DHT11 sensor. A single 12V power supply powers both the Arduino (via the Vin pin) and the fan directly.
