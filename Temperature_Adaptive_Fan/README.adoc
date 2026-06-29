@@ -1,0 +1,140 @@
+= Temperature Adaptive Fan
+:toc: left
+:toclevels: 2
+:icons: font
+:source-highlighter: rouge
+:sectnums:
+
+== Overview
+
+This document describes the hardware wiring for the **Temperature Adaptive Fan** project, which uses an Arduino Uno to control an PWM Fan PWM fan based on temperature readings from a DHT11 sensor. A single 12V power supply powers both the Arduino (via the `Vin` pin) and the fan directly.
+
+image::.img/photo_2026-06-29_20-18-08.jpg[Temperature Adaptive Fan Overview, width=80%]
+
+== Hardware Components
+
+[cols="1,2,3", options="header"]
+|===
+| Component | Model | Purpose
+
+| Microcontroller | Arduino Uno | Reads temperature, generates 25kHz PWM, controls fan speed
+| Temperature Sensor | DHT11 (HS-11) | Measures ambient/router temperature
+| Cooling Fan | PWM Fan 4-Pin PWM | 120mm PC fan with PWM speed control
+| Power Supply | 12V DC PSU (≥1A) | Powers Arduino via Vin and fan motor directly
+|===
+
+== Wiring Diagram
+
+[graphviz, router_kuehler_wiring, svg, width=100%]
+....
+digraph RouterKuehler {
+    rankdir=LR;
+    graph [fontname="Helvetica", fontsize=14, bgcolor="white", margin=0];
+    node [fontname="Helvetica", shape=box, style="rounded,filled", fontsize=11];
+    edge [fontname="Helvetica", fontsize=10];
+
+    // Arduino Uno
+    arduino [label="Arduino Uno\n\n5V | GND | GND | Vin\nD2 (Data) | D3 (Tacho) | D9 (PWM) | D13", 
+             fillcolor="#00979D", fontcolor="white", width=2.5, height=2.0];
+
+    // DHT11
+    dht11 [label="DHT11\nTemp/Humidity Sensor\n\nVCC | DATA | GND", 
+           fillcolor="#2E8B57", fontcolor="white", width=2.0, height=1.5];
+
+    // PWM Fan Fan
+    fan [label="PWM Fan\n4-Pin PWM Fan\n\nGND | 12V | PWM | TACHO", 
+         fillcolor="#4682B4", fontcolor="white", width=2.0, height=1.5];
+
+    // 12V Power Supply (single source)
+    psu [label="12V PSU\nSingle Power Source\n\n+ | −", 
+         fillcolor="#FF6B6B", fontcolor="white", width=1.8, height=1.2];
+
+    // Power distribution
+    psu -> arduino [label="12V → Vin", color="#C41E3A", penwidth=2, fontcolor="#C41E3A"];
+    psu -> fan     [label="12V → 12V", color="#C41E3A", penwidth=2, fontcolor="#C41E3A"];
+    psu -> arduino [label="− → GND", color="#333333", penwidth=2, fontcolor="#333333"];
+    psu -> fan     [label="− → GND", color="#333333", penwidth=2, fontcolor="#333333"];
+
+    // Signal connections
+    arduino -> dht11 [label="5V → VCC", color="#C41E3A", penwidth=2, fontcolor="#C41E3A"];
+    arduino -> dht11 [label="GND → GND", color="#333333", penwidth=2, fontcolor="#333333"];
+    arduino -> dht11 [label="D2 → DATA", color="#0066CC", penwidth=2, fontcolor="#0066CC"];
+
+    arduino -> fan [label="D9 → PWM (25kHz)", color="#0066CC", penwidth=2, fontcolor="#0066CC"];
+    arduino -> fan [label="D3 → TACHO", color="#0066CC", penwidth=2, fontcolor="#0066CC", style=dashed];
+
+    // Note
+    warning [label="Single 12V PSU powers Arduino via Vin and fan directly.\nAll GNDs tied together. DHT11 DATA may need 10kΩ pull-up.", 
+             shape=note, fillcolor="#FFFACD", fontcolor="#333", fontsize=10, width=4.0];
+}
+....
+
+== Pin Assignment Table
+
+[cols="1,1,1,3", options="header"]
+|===
+| Source | Pin | Destination | Description
+
+| 12V PSU | + | Arduino Vin | Powers Arduino via onboard voltage regulator (7-12V input)
+| 12V PSU | + | Fan 12V | Powers fan motor directly
+| 12V PSU | − | Arduino GND | Common ground reference
+| 12V PSU | − | Fan GND | Shared ground with Arduino
+| Arduino | 5V | DHT11 VCC | Powers temperature sensor
+| Arduino | GND | DHT11 GND | Sensor ground
+| Arduino | D2 | DHT11 DATA | One-wire temperature/humidity signal
+| Arduino | D9 | Fan PWM | 25kHz PWM speed control (Timer1)
+| Arduino | D3 | Fan TACHO | Optional RPM feedback (2 pulses per revolution)
+|===
+
+== Important Notes
+
+.Single Power Supply
+====
+The 12V PSU powers **both** the Arduino (via the `Vin` pin) and the PWM Fan fan motor directly. The Arduino's onboard voltage regulator steps the 12V down to 5V for the microcontroller and the `5V` output pin. All ground connections must be tied together to ensure a common reference voltage.
+====
+
+.DHT11 Pull-up Resistor
+====
+If your DHT11 module does not have a built-in pull-up resistor, place a **10kΩ resistor** between the `DATA` and `VCC` pins. Most pre-assembled DHT11 modules (with the blue PCB) already include this resistor.
+====
+
+.Pin 9 is Fixed for 25kHz PWM
+====
+The code uses `Timer1` on **Pin 9** to generate the 25kHz PWM signal required by standard 4-pin PC fans. Do not move the PWM wire to another pin without modifying the timer registers in the sketch.
+====
+
+.Tachometer is Optional
+====
+The `D3` → `TACHO` connection is optional. The `readRPM()` function in the Arduino sketch is commented out by default. If enabled, the fan sends 2 pulses per revolution; multiply the counted pulses by 30 to get RPM.
+====
+
+== Configuration
+
+The Arduino sketch uses the following constants (defined in the source code):
+
+[source,c]
+----
+#define DHTPIN    2    // Temperature sensor data pin
+#define PWM_PIN   9    // Timer1 25kHz PWM output
+#define TACHO_PIN 3    // Optional RPM readout
+
+const float TEMP_START     = 22.0;  // Fan starts spinning (rising temp)
+const float TEMP_HALF      = 24.0;  // 50% fan speed
+const float TEMP_MAX       = 35.0;  // 95% fan speed
+const float TEMP_EMERGENCY = 50.0;  // 100% alarm / emergency
+----
+
+== Power Budget Estimate
+
+[cols="1,1,1", options="header"]
+|===
+| Component | Voltage | Current (typical)
+
+| Arduino Uno (idle) | 5V (regulated) | ~50 mA
+| DHT11 Sensor | 5V | ~0.5 mA (standby) / ~2.5 mA (active)
+| PWM Fan (max) | 12V | ~150 mA
+|===
+
+A **12V 1A (12W) power supply** provides ample headroom for this setup.
+
+I used a 5V to 12V USB step-up converter to power the Arduino from a USB port.
