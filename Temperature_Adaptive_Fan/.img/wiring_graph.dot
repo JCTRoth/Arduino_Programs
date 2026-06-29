@@ -1,0 +1,40 @@
+digraph RouterKuehler {
+    rankdir=LR;
+    graph [fontname="Helvetica", fontsize=14, bgcolor="white", margin=0];
+    node [fontname="Helvetica", shape=box, style="rounded,filled", fontsize=11];
+    edge [fontname="Helvetica", fontsize=10];
+
+    // Arduino Uno
+    arduino [label="Arduino Uno\n\n5V | GND | GND | Vin\nD2 (Data) | D3 (Tacho) | D9 (PWM) | D13", 
+             fillcolor="#00979D", fontcolor="white", width=2.5, height=2.0];
+
+    // DHT11
+    dht11 [label="DHT11\nTemp/Humidity Sensor\n\nVCC | DATA | GND", 
+           fillcolor="#2E8B57", fontcolor="white", width=2.0, height=1.5];
+
+    // Arctic F12 Fan
+    fan [label="Arctic F12\n4-Pin PWM Fan\n\nGND | 12V | PWM | TACHO", 
+         fillcolor="#4682B4", fontcolor="white", width=2.0, height=1.5];
+
+    // 12V Power Supply (single source)
+    psu [label="12V PSU\nSingle Power Source\n\n+ | −", 
+         fillcolor="#FF6B6B", fontcolor="white", width=1.8, height=1.2];
+
+    // Power distribution
+    psu -> arduino [label="12V → Vin", color="#C41E3A", penwidth=2, fontcolor="#C41E3A"];
+    psu -> fan     [label="12V → 12V", color="#C41E3A", penwidth=2, fontcolor="#C41E3A"];
+    psu -> arduino [label="− → GND", color="#333333", penwidth=2, fontcolor="#333333"];
+    psu -> fan     [label="− → GND", color="#333333", penwidth=2, fontcolor="#333333"];
+
+    // Signal connections
+    arduino -> dht11 [label="5V → VCC", color="#C41E3A", penwidth=2, fontcolor="#C41E3A"];
+    arduino -> dht11 [label="GND → GND", color="#333333", penwidth=2, fontcolor="#333333"];
+    arduino -> dht11 [label="D2 → DATA", color="#0066CC", penwidth=2, fontcolor="#0066CC"];
+
+    arduino -> fan [label="D9 → PWM (25kHz)", color="#0066CC", penwidth=2, fontcolor="#0066CC"];
+    arduino -> fan [label="D3 → TACHO", color="#0066CC", penwidth=2, fontcolor="#0066CC", style=dashed];
+
+    // Note
+    warning [label="Single 12V PSU powers Arduino via Vin and fan directly.\nAll GNDs tied together. DHT11 DATA may need 10kΩ pull-up.", 
+             shape=note, fillcolor="#FFFACD", fontcolor="#333", fontsize=10, width=4.0];
+}
