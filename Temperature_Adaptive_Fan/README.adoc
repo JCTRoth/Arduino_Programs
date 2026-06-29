@@ -47,22 +47,23 @@ image::.img/photo_2026-06-29_20-18-08.jpg[Temperature Adaptive Fan Overview, wid
 
 == Important Notes
 
-.Single Power Supply
+Single Power Supply
 ====
 The 12V PSU powers **both** the Arduino (via the `Vin` pin) and the PWM Fan fan motor directly. The Arduino's onboard voltage regulator steps the 12V down to 5V for the microcontroller and the `5V` output pin. All ground connections must be tied together to ensure a common reference voltage.
 ====
 
-.DHT11 Pull-up Resistor
+DHT11 Pull-up Resistor
 ====
 If your DHT11 module does not have a built-in pull-up resistor, place a **10kΩ resistor** between the `DATA` and `VCC` pins. Most pre-assembled DHT11 modules (with the blue PCB) already include this resistor.
 ====
 
-.Pin 9 is Fixed for 25kHz PWM
+Pin 9 is Fixed for 25kHz PWM
 ====
 The code uses `Timer1` on **Pin 9** to generate the 25kHz PWM signal required by standard 4-pin PC fans. Do not move the PWM wire to another pin without modifying the timer registers in the sketch.
+Or just by a module that has this done already.
 ====
 
-.Tachometer is Optional
+Tachometer is Optional
 ====
 The `D3` → `TACHO` connection is optional. The `readRPM()` function in the Arduino sketch is commented out by default. If enabled, the fan sends 2 pulses per revolution; multiply the counted pulses by 30 to get RPM.
 ====
