@@ -26,7 +26,7 @@ image::.img/wiring_graph.png[Wiring Graph, width=80%]
 | Power Supply | 12V DC PSU (≥1A) | Powers Arduino via Vin and fan motor directly
 |===
 
-image::.img/photo_2026-06-29_20-18-08.jpg[Temperature Adaptive Fan Overview, width=80%]
+image::.img/photo_2026-06-29_20-18-08.jpg[Temperature Adaptive Fan Overview, width=100%]
 
 == Pin Assignment Table
 
