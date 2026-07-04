@@ -23,8 +23,8 @@
 #define PWM_PIN       9       // Timer1-Pin 25kHz PWM
 #define TACHO_PIN     3       // Optional: Tachometer
 
-const float TEMP_START      = 22..0;   // Ab hier anfangen zu lueften (steigend)
-const float TEMP_HALF       = 24.0;   // 50% Luefter bei steigender Temp
+const float TEMP_START      = 26.0;   // Ab hier anfangen zu lueften (steigend)
+const float TEMP_HALF       = 28.0;   // 50% Luefter bei steigender Temp
 const float TEMP_MAX        = 35.0;   // 95% Luefter bei steigender Temp
 const float TEMP_EMERGENCY  = 50.0;   // Notabschaltung / 100% Alarm
 
